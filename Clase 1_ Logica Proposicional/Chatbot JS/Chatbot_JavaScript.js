@@ -116,7 +116,7 @@ class Chatbot {
     
     // Patrones de preguntas
     if (preguntaNormalizada.includes('puedo tomar') || preguntaNormalizada.includes('puede tomar')) {
-      const curso = palabras.find(p => knowledgeBase.cursos[p]);
+      const curso = Object.keys(knowledgeBase).find(c => preguntaNormalizada.includes(c.toLowerCase));
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -192,6 +192,17 @@ class Chatbot {
         this.historial.push(`Chatbot: ${respuesta}`);
         return respuesta;
       }
+    }
+    else if (preguntaNormalizada.includes('requisitos para')){
+      if (!curso){
+        const respuesta = "No reconozco ese curso. ¿Podrias ser mas especifico?";
+        this.historial.push('Chatbot: ${respuesta}');
+        return respuesta;
+      }
+      const requisitos = knowledgeBase.cursos[curso].requisito || 'ninguno';
+      const respuesta = 'Para tomar ${curso}, necesitas: ${requisitos}.';
+      this.historial.push('Chatbot: ${respuesta}');
+      return respuesta;
     }
     else {
       const respuesta = "No entendí tu pregunta. Puedo ayudarte con:\n- Horarios de cursos\n- Créditos de cursos\n- Requisitos para tomar cursos\n- Evaluar expresiones lógicas (AND, OR, NOT)";
