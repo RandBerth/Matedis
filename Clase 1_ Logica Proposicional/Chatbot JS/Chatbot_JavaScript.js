@@ -65,6 +65,13 @@ class Chatbot {
     this.historial = [];
   }
   
+  // Método para encontrar un curso en un texto
+  encontrarCurso(texto) {
+    return Object.keys(knowledgeBase.cursos).find(c => 
+      texto.toLowerCase().includes(c.toLowerCase())
+    );
+  }
+  
   // Método para evaluar expresiones lógicas
   evaluarExpresion(expresion) {
     const partes = expresion.split(/(AND|OR|NOT)/).map(s => s.trim()).filter(s => s);
@@ -111,12 +118,52 @@ class Chatbot {
     this.historial.push(`Usuario: ${pregunta}`);
     
     // Convertir a minúsculas y eliminar signos de interrogación
-    const preguntaNormalizada = pregunta.toLowerCase().replace('?', '').trim();
-    const palabras = preguntaNormalizada.split(' ');
+    const preguntaNormalizada = pregunta.toLowerCase().replace(/\?/g, '').trim();
     
-    // Patrones de preguntas
-    if (preguntaNormalizada.includes('puedo tomar') || preguntaNormalizada.includes('puede tomar')) {
-      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
+    // CASO ESPECIAL: Preguntas sobre tomar cursos sin haber aprobado requisitos
+    if (preguntaNormalizada.includes('sin haber aprobado')) {
+      // Extraer la parte antes y después de "sin haber aprobado"
+      const partes = preguntaNormalizada.split('sin haber aprobado');
+      
+      if (partes.length === 2) {
+        const parteCurso = partes[0].trim();
+        const parteRequisito = partes[1].trim();
+        
+        // Buscar el curso en la primera parte
+        const cursoDeseado = this.encontrarCurso(parteCurso);
+        
+        // Buscar el requisito en la segunda parte
+        const requisitoFaltante = this.encontrarCurso(parteRequisito);
+        
+        if (cursoDeseado && requisitoFaltante) {
+          // Verificar si el requisito es realmente necesario para el curso
+          const requisitosDelCurso = knowledgeBase.cursos[cursoDeseado].requisito;
+          
+          if (!requisitosDelCurso) {
+            // El curso no tiene requisitos
+            const respuesta = `Sí, puedes tomar ${cursoDeseado} sin haber aprobado ${requisitoFaltante} porque ${cursoDeseado} no tiene requisitos.`;
+            this.historial.push(`Chatbot: ${respuesta}`);
+            return respuesta;
+          }
+          
+          if (!requisitosDelCurso.includes(requisitoFaltante)) {
+            // El requisito mencionado no es necesario para el curso
+            const respuesta = `Sí, puedes tomar ${cursoDeseado} sin haber aprobado ${requisitoFaltante} porque ${requisitoFaltante} no es un requisito para ${cursoDeseado}.`;
+            this.historial.push(`Chatbot: ${respuesta}`);
+            return respuesta;
+          }
+          
+          // El requisito es necesario para el curso
+          const respuesta = `No, no puedes tomar ${cursoDeseado} sin haber aprobado ${requisitoFaltante}. ${requisitoFaltante} es un requisito necesario para ${cursoDeseado}.`;
+          this.historial.push(`Chatbot: ${respuesta}`);
+          return respuesta;
+        }
+      }
+    }
+    
+    // CASO GENERAL: Preguntas sobre poder tomar un curso
+    else if (preguntaNormalizada.includes('puedo tomar') || preguntaNormalizada.includes('puede tomar')) {
+      const curso = this.encontrarCurso(preguntaNormalizada);
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -132,8 +179,10 @@ class Chatbot {
       this.historial.push(`Chatbot: ${respuesta}`);
       return respuesta;
     }
+    
+    // Otros casos
     else if (preguntaNormalizada.includes('horario de')) {
-      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
+      const curso = this.encontrarCurso(preguntaNormalizada);
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -146,7 +195,7 @@ class Chatbot {
       return respuesta;
     }
     else if (preguntaNormalizada.includes('créditos de')) {
-      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
+      const curso = this.encontrarCurso(preguntaNormalizada);
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -159,7 +208,7 @@ class Chatbot {
       return respuesta;
     }
     else if (preguntaNormalizada.includes('aprobé') || preguntaNormalizada.includes('aprobado')) {
-      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
+      const curso = this.encontrarCurso(preguntaNormalizada);
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -194,21 +243,7 @@ class Chatbot {
       }
     }
     else if (preguntaNormalizada.includes('qué necesito para tomar') || preguntaNormalizada.includes('requisitos para')) {
-      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
-      if (!curso) {
-        const respuesta = "No reconozco ese curso. ¿ Podrias ser mas especifico?";
-        this.historial.push(`Chatbot ${respuesta}`);
-        return respuesta;
-      }
-
-      const requisitos = knowledgeBase.cursos[curso].requisito;
-      const respuesta = requisitos ? `Para tomar ${curso}, necesitas: ${requisitos}.` : `No hay requisitos para el curso ${curso}`;
-
-      this.historial.push(`Chatbot ${respuesta}`);
-      return respuesta;
-    }
-    else if (preguntaNormalizada.includes('qué necesito para tomar') || preguntaNormalizada.includes('requisitos para')) {
-      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
+      const curso = this.encontrarCurso(preguntaNormalizada);
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -243,6 +278,7 @@ console.log(bot.procesarPregunta("¿Puedo tomar Ingeniería de Software?"));
 console.log(bot.procesarPregunta("Aprobé Programación I"));
 console.log(bot.procesarPregunta("¿Puedo tomar Ingeniería de Software?"));
 console.log(bot.procesarPregunta("¿Cuál es el horario de Bases de Datos?"));
+console.log(bot.procesarPregunta("¿Puedo tomar Bases de Datos sin haber aprobado Programación I?"));
 console.log(bot.procesarPregunta("Evalúa Programación I AND Bases de Datos"));
 console.log(bot.procesarPregunta("Evalúa Programación I OR Matemáticas Discretas"));
 console.log(bot.procesarPregunta("Evalúa NOT Programación I"));
