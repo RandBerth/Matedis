@@ -116,7 +116,7 @@ class Chatbot {
     
     // Patrones de preguntas
     if (preguntaNormalizada.includes('puedo tomar') || preguntaNormalizada.includes('puede tomar')) {
-      const curso = palabras.find(p => knowledgeBase.cursos[p]);
+      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -133,7 +133,7 @@ class Chatbot {
       return respuesta;
     }
     else if (preguntaNormalizada.includes('horario de')) {
-      const curso = palabras.find(p => knowledgeBase.cursos[p]);
+      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -146,7 +146,7 @@ class Chatbot {
       return respuesta;
     }
     else if (preguntaNormalizada.includes('créditos de')) {
-      const curso = palabras.find(p => knowledgeBase.cursos[p]);
+      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
@@ -159,7 +159,7 @@ class Chatbot {
       return respuesta;
     }
     else if (preguntaNormalizada.includes('aprobé') || preguntaNormalizada.includes('aprobado')) {
-      const curso = palabras.find(p => knowledgeBase.cursos[p]);
+      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
       
       if (!curso) {
         const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
