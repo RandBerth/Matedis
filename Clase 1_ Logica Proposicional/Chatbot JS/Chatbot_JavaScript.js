@@ -142,10 +142,10 @@ class Chatbot {
       if (
         /¿?Puedo tomar (.+)\??/i.test(pregunta) ||
         /¿?Qué necesito para tomar (.+)\??/i.test(pregunta) ||
-        /¿?Cuáles son los requisitos para (.+)\??/i.test(pregunta)
+        /¿?Cuáles son los requisitos (?:para|de) (.+)\??/i.test(pregunta)
       ) {
-        const match = pregunta.match(/tomar (.+?)(\?|$)|para (.+?)(\?|$)/i);
-        const cursoInput = match ? match[1] || match[3] : null;
+        const match = pregunta.match(/tomar (.+?)(\?|$)|para (.+?)(\?|$)|de (.+?)(\?|$)/i);
+        const cursoInput = match ? match[1] || match[3] || match[5] : null;
         const curso = cursoInput
           ? knowledgeBase.reglas.buscarCursoPorNombre(cursoInput)
           : null;
@@ -160,7 +160,8 @@ class Chatbot {
 
         if (
           pregunta.toLowerCase().includes("qué necesito") ||
-          pregunta.toLowerCase().includes("requisitos para")
+          pregunta.toLowerCase().includes("requisitos para") ||
+          pregunta.toLowerCase().includes("requisitos de")
         ) {
           const requisitos = knowledgeBase.cursos[curso].requisito;
           const respuesta = requisitos
