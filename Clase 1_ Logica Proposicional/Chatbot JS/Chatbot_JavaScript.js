@@ -193,6 +193,35 @@ class Chatbot {
         return respuesta;
       }
     }
+    else if (preguntaNormalizada.includes('qué necesito para tomar') || preguntaNormalizada.includes('requisitos para')) {
+      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
+      if (!curso) {
+        const respuesta = "No reconozco ese curso. ¿ Podrias ser mas especifico?";
+        this.historial.push(`Chatbot ${respuesta}`);
+        return respuesta;
+      }
+
+      const requisitos = knowledgeBase.cursos[curso].requisito;
+      const respuesta = requisitos ? `Para tomar ${curso}, necesitas: ${requisitos}.` : `No hay requisitos para el curso ${curso}`;
+
+      this.historial.push(`Chatbot ${respuesta}`);
+      return respuesta;
+    }
+    else if (preguntaNormalizada.includes('qué necesito para tomar') || preguntaNormalizada.includes('requisitos para')) {
+      const curso = Object.keys(knowledgeBase.cursos).find(c => preguntaNormalizada.includes(c.toLowerCase()));
+      
+      if (!curso) {
+        const respuesta = "No reconozco ese curso. ¿Podrías ser más específico?";
+        this.historial.push(`Chatbot: ${respuesta}`);
+        return respuesta;
+      }
+    
+      const requisitos = knowledgeBase.cursos[curso].requisito;
+      const respuesta = requisitos ? `Para tomar ${curso}, necesitas: ${requisitos}.` : `No hay requisitos para tomar ${curso}.`;
+      
+      this.historial.push(`Chatbot: ${respuesta}`);
+      return respuesta;
+    }
     else {
       const respuesta = "No entendí tu pregunta. Puedo ayudarte con:\n- Horarios de cursos\n- Créditos de cursos\n- Requisitos para tomar cursos\n- Evaluar expresiones lógicas (AND, OR, NOT)";
       this.historial.push(`Chatbot: ${respuesta}`);
