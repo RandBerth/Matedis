@@ -22,6 +22,11 @@ class Tarea:
             "color": self.color,
             "estado": self.estado
         }
+    @staticmethod
+    def get_all(connection):
+        cursor = connection.execute("SELECT * FROM tareas")
+        rows = cursor.fetchall()
+        return [Tarea(*row) for row in rows]
 
 def create_table(connection):
     with connection:
