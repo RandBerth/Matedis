@@ -14,9 +14,9 @@ class Encargado:
             "contacto": self.contacto,
             "detalles": self.detalles,
         }
-
 def create_table(connection):
     with connection:
+        print("Creando tabla de encargados...")
         connection.execute("""
             CREATE TABLE IF NOT EXISTS encargados (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +25,7 @@ def create_table(connection):
                 detalles TEXT
             )
         """)
+        print("Tabla encargados creada o ya existe.")
 
 def insert_encargado(connection, encargado):
     with connection:

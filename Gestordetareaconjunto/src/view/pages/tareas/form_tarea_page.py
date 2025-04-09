@@ -11,7 +11,16 @@ class FormTareaPage:
             label="Tipo",
             options=["clase", "comida", "rutina", "recordatorio", "otro"]
         )
-        self._color = ft.ColorPicker(label="Color")
+        self._color = ft.Dropdown(
+            label="Color",
+            options=[
+            ft.dropdown.Option("red"),
+            ft.dropdown.Option("green"),
+            ft.dropdown.Option("blue"),
+            ft.dropdown.Option("#FF5733")
+            ]
+        )
+
         self._fecha_recordatorio = None
         self._hora_inicio = None
         self._hora_fin = None
