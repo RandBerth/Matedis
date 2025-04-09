@@ -5,7 +5,7 @@ from view.pages.tareas.form_tarea_page import FormTareaPage
 def TareasPage(page: ft.Page):
     lista = ft.Column(expand=True, spacing=10)
 
-    # 🛠️ AlertDialog corregido: debe tener contenido inicial
+    # Crear diálogo una sola vez
     dialog = ft.AlertDialog(
         modal=True,
         title=ft.Text(""),
@@ -14,7 +14,7 @@ def TareasPage(page: ft.Page):
         open=False
     )
     page.dialog = dialog
-    page.overlay.append(dialog)  # ✅ Necesario para que el diálogo funcione
+    page.overlay.append(dialog)  # Necesario para que el diálogo funcione
 
     def cargar_tareas():
         tareas = obtener_tareas()
@@ -44,13 +44,14 @@ def TareasPage(page: ft.Page):
 
     def abrir_formulario(tarea=None):
         def al_guardar():
-            dialog.open = False
             cargar_tareas()
+            page.update()
 
+        # Ahora solo pasamos page, tarea y on_save
         contenido_formulario = FormTareaPage(page, tarea, on_save=al_guardar)
-        dialog.title = ft.Text("Formulario de Tarea")
+        dialog.title = ft.Text("Nueva Tarea" if tarea is None else "Editar Tarea")
         dialog.content = contenido_formulario
-        dialog.actions = []  # No acciones adicionales necesarias si se manejan desde el formulario
+        dialog.actions = []  # No acciones adicionales necesarias
         dialog.open = True
         page.update()
 

@@ -1,10 +1,12 @@
 import flet as ft
-from model.tarea_model import Tarea
+from model.tarea_model import Tarea, insert_tarea
+from model.db_config import get_db_connection
 
 class FormTareaPage(ft.Column):
     def __init__(self, page: ft.Page, tarea=None, on_save=None):
         super().__init__()
         self.page = page
+        self.db_connection = get_db_connection()  # Obtener conexión aquí
         self.tarea = tarea
         self.on_save = on_save
 
@@ -44,19 +46,40 @@ class FormTareaPage(ft.Column):
             self.page.update()
             return
 
-        db = self.page.database
-        nueva = Tarea(
-            id=self.tarea.id if self.tarea else None,
-            nombre=self.nombre.value,
-            descripcion=self.descripcion.value,
-            tipo=self.tipo.value,
-            color=self.color.value,
-        )
+        try:
+            # Crear objeto Tarea
+            nueva = Tarea(
+                id=self.tarea.id if self.tarea else None,
+                nombre=self.nombre.value,
+                descripcion=self.descripcion.value,
+                tipo=self.tipo.value,
+                color=self.color.value,
+            )
 
-        if self.tarea:
-            Tarea.update(db, nueva)
-        else:
-            Tarea.insert(db, nueva)
+            # Verificar que la conexión esté activa
+            if self.db_connection is None:
+                self.db_connection = get_db_connection()
 
-        if self.on_save:
-            self.on_save()
+            # Guardar en la base de datos
+            if self.tarea and self.tarea.id:
+                from model.tarea_model import update_tarea
+                update_tarea(self.db_connection, nueva)
+            else:
+                insert_tarea(self.db_connection, nueva)
+
+            # Cerrar diálogo y actualizar
+            self.page.dialog.open = False
+            self.page.update()
+
+            # Llamar al callback si existe
+            if self.on_save:
+                self.on_save()
+                
+        except Exception as ex:
+            print(f"Error al guardar tarea: {ex}")
+            self.page.snack_bar = ft.SnackBar(ft.Text(f"Error: {str(ex)}"), open=True)
+            self.page.update()
+        finally:
+            # Cerrar la conexión
+            if self.db_connection:
+                self.db_connection.close()
