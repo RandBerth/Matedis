@@ -1,19 +1,18 @@
 import sqlite3
 
-DB_PATH = "db.sqlite"  # Asegúrate que esta ruta sea correcta para tu proyecto
-
+DB_PATH = "F:\Matedis\Gestordetareaconjunto\src\model\database.db"  
 def conectar():
     return sqlite3.connect(DB_PATH)
 
 
-def agregar_encargado(nombre: str, correo: str):
+def agregar_encargado(nombre: str, contacto: str):
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO encargados (nombre, correo)
+        INSERT INTO encargados (nombre, contacto)
         VALUES (?, ?)
-    """, (nombre, correo))
+    """, (nombre, contacto))
 
     conn.commit()
     conn.close()
@@ -23,7 +22,7 @@ def obtener_encargados():
     conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, nombre, correo FROM encargados")
+    cursor.execute("SELECT id, nombre, contacto FROM encargados")
     encargados = cursor.fetchall()
 
     conn.close()
@@ -39,15 +38,15 @@ def eliminar_encargado(encargado_id: int):
     conn.close()
 
 
-def actualizar_encargado(encargado_id: int, nuevo_nombre: str, nuevo_correo: str):
+def actualizar_encargado(encargado_id: int, nuevo_nombre: str, nuevo_contacto: str):
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
         UPDATE encargados
-        SET nombre = ?, correo = ?
+        SET nombre = ?, contacto = ?
         WHERE id = ?
-    """, (nuevo_nombre, nuevo_correo, encargado_id))
+    """, (nuevo_nombre, nuevo_contacto, encargado_id))
 
     conn.commit()
     conn.close()

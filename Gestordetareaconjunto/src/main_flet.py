@@ -6,7 +6,11 @@ from model.init_tables import crear_tablas_si_no_existen
 from model.init_tables import init_all_tables 
 from model.init_tables import check_tables
 
-db_path = "F:\\Matedis\\Gestordetareaconjunto\\src\\model\\database.db"
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Create the path to the database relative to the script location
+db_path = os.path.join(SCRIPT_DIR, "model", "database.db")
 
 # Imprimir el path de la base de datos para ver si es correcto
 print(f"Conectando a la base de datos en: {db_path}")
