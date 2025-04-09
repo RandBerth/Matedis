@@ -1,150 +1,62 @@
 import flet as ft
 from model.tarea_model import Tarea
 
-class FormTareaPage:
-    def __init__(self, page, tarea=None):
+class FormTareaPage(ft.Column):
+    def __init__(self, page: ft.Page, tarea=None, on_save=None):
+        super().__init__()
         self.page = page
         self.tarea = tarea
-        self._nombre = ft.TextField(label="Nombre", autofocus=True)
-        self._descripcion = ft.TextField(label="Descripción", multiline=True)
-        self._tipo = ft.Dropdown(
+        self.on_save = on_save
+
+        self.nombre = ft.TextField(label="Nombre", value=tarea.nombre if tarea else "")
+        self.descripcion = ft.TextField(label="Descripción", multiline=True, value=tarea.descripcion if tarea else "")
+        self.tipo = ft.Dropdown(
             label="Tipo",
-            options=["clase", "comida", "rutina", "recordatorio", "otro"]
-        )
-        self._color = ft.Dropdown(
-            label="Color",
             options=[
-            ft.dropdown.Option("red"),
-            ft.dropdown.Option("green"),
-            ft.dropdown.Option("blue"),
-            ft.dropdown.Option("#FF5733")
-            ]
-        )
-
-        self._fecha_recordatorio = None
-        self._hora_inicio = None
-        self._hora_fin = None
-        self._lugar_id = None
-        self._lugares_disponibles = []
-
-    def build(self):
-        self._load_lugares()
-
-        return ft.Column(
-            [
-                self._nombre,
-                self._descripcion,
-                self._tipo,
-                self._color,
-                self._get_fecha_recordatorio(),
-                self._get_hora_inicio(),
-                self._get_hora_fin(),
-                self._get_buttons()
-            ]
-        )
-
-    def _load_lugares(self):
-        # Cargar lugares desde la base de datos
-        db = self.page.database
-
-    def _get_fecha_recordatorio(self):
-        return ft.Row(
-            [
-                ft.Text("Fecha del recordatorio"),
-                ft.ElevatedButton(
-                    text="Seleccionar fecha",
-                    on_click=self._seleccionar_fecha,
-                ),
-                ft.Text(self._fecha_recordatorio.strftime("%d/%m/%Y") if self._fecha_recordatorio else "No seleccionada")
-            ]
-        )
-
-    def _get_hora_inicio(self):
-        return ft.Row(
-            [
-                ft.Text("Hora de inicio"),
-                ft.ElevatedButton(
-                    text="Seleccionar hora",
-                    on_click=self._seleccionar_hora_inicio,
-                ),
-                ft.Text(self._hora_inicio.format() if self._hora_inicio else "No seleccionada")
-            ]
-        )
-
-    def _get_hora_fin(self):
-        return ft.Row(
-            [
-                ft.Text("Hora de fin"),
-                ft.ElevatedButton(
-                    text="Seleccionar hora",
-                    on_click=self._seleccionar_hora_fin,
-                ),
-                ft.Text(self._hora_fin.format() if self._hora_fin else "No seleccionada")
-            ]
-        )
-
-    def _get_buttons(self):
-        return ft.Row(
-            [
-                ft.ElevatedButton(
-                    text="Cancelar",
-                    color=ft.colors.RED,
-                    on_click=lambda _: self.page.go_back()
-                ),
-                ft.ElevatedButton(
-                    text="Confirmar",
-                    color=ft.colors.GREEN,
-                    on_click=self._guardar_tarea
-                )
+                ft.dropdown.Option("clase"),
+                ft.dropdown.Option("comida"),
+                ft.dropdown.Option("rutina"),
+                ft.dropdown.Option("recordatorio"),
+                ft.dropdown.Option("otro")
             ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            spacing=20
+            value=tarea.tipo if tarea else "otro"
         )
+        self.color = ft.TextField(label="Color", value=tarea.color if tarea else "#FFFF00")
 
-    def _seleccionar_fecha(self, e):
-        picked_date = self.page.show_date_picker(
-            initial_date=self._fecha_recordatorio or ft.Date.now()
-        )
-        if picked_date:
-            self._fecha_recordatorio = picked_date
+        self.controls = [
+            self.nombre,
+            self.descripcion,
+            self.tipo,
+            self.color,
+            ft.Row([
+                ft.ElevatedButton("Cancelar", on_click=self.cancelar),
+                ft.ElevatedButton("Guardar", on_click=self.guardar)
+            ], alignment=ft.MainAxisAlignment.SPACE_EVENLY)
+        ]
+
+    def cancelar(self, e):
+        self.page.dialog.open = False
+        self.page.update()
+
+    def guardar(self, e):
+        if not self.nombre.value or not self.tipo.value:
+            self.page.snack_bar = ft.SnackBar(ft.Text("Por favor, llena los campos obligatorios"), open=True)
             self.page.update()
-
-    def _seleccionar_hora_inicio(self, e):
-        picked_time = self.page.show_time_picker()
-        if picked_time:
-            self._hora_inicio = picked_time
-            self.page.update()
-
-    def _seleccionar_hora_fin(self, e):
-        picked_time = self.page.show_time_picker()
-        if picked_time:
-            self._hora_fin = picked_time
-            self.page.update()
-
-    def _guardar_tarea(self, e):
-        if not self._nombre.value or not self._tipo.value:
-            self.page.snack_bar = ft.SnackBar(
-                content=ft.Text("Todos los campos obligatorios deben ser llenados"),
-                open=True,
-            )
             return
 
         db = self.page.database
-        tarea = Tarea(
+        nueva = Tarea(
             id=self.tarea.id if self.tarea else None,
-            nombre=self._nombre.value,
-            descripcion=self._descripcion.value or None,
-            tipo=self._tipo.value,
-            color=self._color.value,
-            lugar_id=self._lugar_id,
-            fecha_recordatorio=self._fecha_recordatorio,
-            hora_inicio=self._hora_inicio,
-            hora_fin=self._hora_fin,
+            nombre=self.nombre.value,
+            descripcion=self.descripcion.value,
+            tipo=self.tipo.value,
+            color=self.color.value,
         )
 
         if self.tarea:
-            Tarea.update(db, tarea)
+            Tarea.update(db, nueva)
         else:
-            Tarea.insert(db, tarea)
+            Tarea.insert(db, nueva)
 
-        self.page.go_back()
+        if self.on_save:
+            self.on_save()

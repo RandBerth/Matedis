@@ -1,10 +1,20 @@
-
-import flet as ft
+import flet as ft 
 from controller.tarea_controller import obtener_tareas, eliminar_tarea
 from view.pages.tareas.form_tarea_page import FormTareaPage
 
 def TareasPage(page: ft.Page):
     lista = ft.Column(expand=True, spacing=10)
+
+    # 🛠️ AlertDialog corregido: debe tener contenido inicial
+    dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text(""),
+        content=ft.Text(""),
+        actions=[],
+        open=False
+    )
+    page.dialog = dialog
+    page.overlay.append(dialog)  # ✅ Necesario para que el diálogo funcione
 
     def cargar_tareas():
         tareas = obtener_tareas()
@@ -33,8 +43,14 @@ def TareasPage(page: ft.Page):
         page.update()
 
     def abrir_formulario(tarea=None):
-        dialog = FormTareaPage(tarea)
-        page.dialog = dialog
+        def al_guardar():
+            dialog.open = False
+            cargar_tareas()
+
+        contenido_formulario = FormTareaPage(page, tarea, on_save=al_guardar)
+        dialog.title = ft.Text("Formulario de Tarea")
+        dialog.content = contenido_formulario
+        dialog.actions = []  # No acciones adicionales necesarias si se manejan desde el formulario
         dialog.open = True
         page.update()
 
@@ -42,7 +58,6 @@ def TareasPage(page: ft.Page):
         eliminar_tarea(tarea_id)
         cargar_tareas()
 
-    # Inicial UI
     view = ft.Column([
         ft.Row([
             ft.Text("Tareas", style="titleLarge"),
